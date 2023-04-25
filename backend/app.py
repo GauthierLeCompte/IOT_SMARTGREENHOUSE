@@ -12,11 +12,11 @@ CORS(app, resources={r"/*": {'origins': '*'}})
 
 @app.route('/', methods=['GET'])
 def greetings():
-    return "Hello w"
+    return "Hello wor;d"
 
 @app.route('/homepage', methods=['GET'])
 def homepage():
-    return ("YEEEW")
+    return ("homepage")
 
 
 # Press the green button in the gutter to run the script.
