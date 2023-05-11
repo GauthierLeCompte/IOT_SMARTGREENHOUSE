@@ -1,0 +1,61 @@
+version: '3.6'
+
+services:
+
+  api:
+    build:
+      context: ./api
+      dockerfile: DockerFile
+    volumes:
+    - './api:/usr/src/app'
+    ports:
+      - 5001:5000
+#    expose:
+#      - '5000'
+    environment:
+    - FLASK_DEBUG=1
+    - APP_SETTINGS=src.config.DevelopmentConfig
+    container_name: iot_api
+    depends_on:
+      - iot_database
+      - iot_model
+
+  iot_model:
+    ports:
+      - 5002:5000
+    build:
+      context: ./model
+      dockerfile: DockerFile
+    volumes:
+      - './model:/usr/src/app'
+    environment:
+      - FLASK_DEBUG=1
+      - APP_SETTINGS=src.config.DevelopmentConfig
+    depends_on:
+      - iot_database
+    container_name: iot_model
+
+  iot_database:
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - 5435:5432
+    build:
+      context: ./database
+      dockerfile: DockerFile
+    container_name: iot_db
+
+#  nginx:
+#    build:
+#      context: ./nginx
+#      dockerfile: DockerFile
+#    restart: always
+#    ports:
+#      - 80:80
+#    depends_on:
+#      - iot_database
+#      - iot_model
+#      - api
+
+

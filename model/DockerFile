@@ -1,0 +1,23 @@
+# base image
+FROM python:3.8-slim
+# new
+# install dependencies
+RUN pip install --upgrade pip
+RUN apt-get update && apt-get install -y netcat python3-dev
+
+
+# set working directory
+WORKDIR /usr/src/app
+# add and install requirements
+COPY ./requirements.txt /usr/src/app/requirements.txt
+RUN pip install -r requirements.txt
+
+# new
+# add entrypoint.sh
+COPY ./run.sh /usr/src/app/run.sh
+RUN chmod +x /usr/src/app/run.sh
+# add app
+COPY . /usr/src/app
+# new
+# run server
+CMD ["/usr/src/app/run.sh"]
