@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import requests
 
 # Create a Flask application and enable CORS
 app = Flask(__name__)
@@ -30,6 +31,17 @@ def update_status():
         greenhouse_status[key] = desired_status[key]
 
     return "Updated", 200
+
+
+@app.route('/app-endpoint', methods=['GET', 'POST'])
+def app_endpoint():
+    # This code will run when a user makes a GET or POST request to "/app-endpoint"
+    response = requests.get('http://<api-server>/api/predict')
+    if response.status_code == 200:
+        return jsonify(response.json()), 200
+    else:
+        return jsonify({"error": "Unable to get prediction"}), response.status_code
+
 
 # Run the Flask application on port 5000
 if __name__ == '__main__':
