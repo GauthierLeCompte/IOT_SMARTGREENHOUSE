@@ -27,7 +27,7 @@ machine.callback(trigger = (machine.PYGATE_START_EVT | machine.PYGATE_STOP_EVT |
 print('Connecting to WiFi...',  end='')
 # Connect to a Wifi Network
 wlan = WLAN(mode=WLAN.STA)
-wlan.connect(ssid='FILL IN', auth=(WLAN.WPA2, "FILL IN")) #TODO
+wlan.connect(ssid='Fill in', auth=(WLAN.WPA2, "Fill in")) #TODO
 
 while not wlan.isconnected():
     print('.', end='')
