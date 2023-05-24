@@ -2,7 +2,19 @@ from flask import Flask, render_template, jsonify, request
 import requests
 import json
 import decodeSensorData
-app = Flask(__name__)
+from datetime import date
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+
+hours = []
+minutes = []
+temp=[]
+hum=[]
+lights=[]
+
+app = Flask(__name__, static_url_path='/static')
 
 last_timestamp = "2023-05-24T00:00:00Z"
 # Placeholder variables to store greenhouse data and control states
@@ -19,6 +31,41 @@ control_states = {
 }
 mode = 'manual'
 
+def plotImages():
+    global hours, minutes, temp, hum, lights
+
+    # Plotting temperature
+    plt.figure()
+    plt.plot(hours, temp, marker='o', linestyle='-', color='b')
+    plt.xlabel('Time (hours)')
+    plt.ylabel('Temperature (Celsius)')
+    plt.title('Temperature Evolution')
+    plt.xticks(np.arange(min(hours), max(hours) + 1, 1, dtype=int))
+    plt.grid(True)
+    plt.savefig('static/temperature_graph.png')
+    plt.close()
+
+    # Plotting humidity
+    plt.figure()
+    plt.plot(hours, hum, marker='o', linestyle='-', color='b')
+    plt.xlabel('Time (hours)')
+    plt.ylabel('Humidity')
+    plt.title('Humidity Evolution')
+    plt.xticks(np.arange(min(hours), max(hours) + 1, 1, dtype=int))
+    plt.grid(True)
+    plt.savefig('static/humidity_graph.png')
+    plt.close()
+
+    # Plotting lights
+    plt.figure()
+    plt.plot(hours, lights, marker='o', linestyle='-', color='b')
+    plt.xlabel('Time (hours)')
+    plt.ylabel('Lights (lux)')
+    plt.title('Lights Evolution')
+    plt.xticks(np.arange(min(hours), max(hours) + 1, 1, dtype=int))
+    plt.grid(True)
+    plt.savefig('static/lights_graph.png')
+    plt.close()
 
 def parse_timestamp(timestamp):
     last_timestamp = {
@@ -56,6 +103,7 @@ def index():
 
 @app.route('/api/update_data')
 def update_data():
+    current_date = date.today().strftime("%Y-%m-%d")
     global last_timestamp
     url = "https://eu1.cloud.thethings.network/api/v3/as/applications/smart-greenhouse-ntg/packages/storage/uplink_message"
     url+="?after=2023-05-23T00:00:00Z"
@@ -81,6 +129,17 @@ def update_data():
                 greenhouse_data['temperature'] = (temperature)
                 greenhouse_data['humidity'] = (humidity)
                 greenhouse_data['natural_light'] = (light)
+
+                if json.loads(data)['result']['received_at'][0:10] == current_date:
+                    global hours, minutes, temp, hum, lights
+                    minute = int(json.loads(data)['result']['received_at'][14:16])
+                    hour = float(json.loads(data)['result']['received_at'][11:13]) + (minute/60)
+                    hours.append(hour)
+                    temp.append(temperature)
+                    hum.append(humidity)
+                    lights.append(light[0])
+                    plotImages()
+
     else:
 
         # Simulated API call, update the greenhouse data with new values

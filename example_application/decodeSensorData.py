@@ -22,7 +22,6 @@ def decode_sensordata(encoded_payload):
     values = cleaned_string.split('-')
 
     # Extract the individual values and assign them to variables
-    print(values)
     a = float(values[0])
     b = float(values[1])
     c = tuple(map(int, values[2][1:-1].split(',')))

@@ -10,6 +10,10 @@
                     $('#temperature').text(data.temperature);
                     $('#humidity').text(data.humidity);
                     $('#natural_light').text(data.natural_light);
+                    $('#temperature-chart').attr('src/static', 'static/temperature_graph.png?timestamp=' + new Date().getTime()); // Update the image source with a timestamp to avoid caching
+                    $('#humidity-chart').attr('src/static', 'static/humidity_graph.png?timestamp=' + new Date().getTime()); // Update the image source with a timestamp to avoid caching
+                    $('#lights-chart').attr('src/static', 'static/lights_graph.png?timestamp=' + new Date().getTime()); // Update the image source with a timestamp to avoid caching
+
                 });
             }
 
@@ -45,6 +49,7 @@
             // Periodically update the greenhouse data every 5 seconds
             setInterval(function () {
                 updateGreenhouseData();
+                updateControlStates();
             }, 60000);
 
             // Initialize control buttons state based on the initial mode selection
@@ -56,7 +61,13 @@
             // Reload button click event
             $('#reload-button').click(function () {
                 updateGreenhouseData();
+                updateControlStates();
+
             });
+
+            // Initial image load
+            updateGreenhouseData();
+
         });
     </script>
 </head>
@@ -85,5 +96,10 @@
     <p>Cooler: <span>{{ 'ON' if control_states.cooler else 'OFF' }}</span></p>
     <p>Humidifier: <span>{{ 'ON' if control_states.humidifier else 'OFF' }}</span></p>
     <p>Lights: <span>{{ 'ON' if control_states.lights else 'OFF' }}</span></p>
+    <br><br>
+    <img id="temperature-chart" src="/static/temperature_graph.png" alt="Temperature Chart">
+    <img id="humidity-chart" src="/static/humidity_graph.png" alt="Humidity Chart">
+    <img id="lights-chart" src="/static/lights_graph.png" alt="Light Chart">
+
 </body>
 </html>
