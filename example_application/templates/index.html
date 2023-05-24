@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Greenhouse Control Panel</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function updateGreenhouseData() {
+                $.get('/api/update_data', function (data) {
+                    $('#temperature').text(data.temperature);
+                    $('#humidity').text(data.humidity);
+                    $('#natural_light').text(data.natural_light);
+                });
+            }
+
+            function updateControlStates() {
+                $.post('/api/update_controls', $('#control-form').serialize(), function () {
+                    // Reload the page to reflect the updated control states
+                    location.reload();
+                });
+            }
+
+            $('#control-form input[type=radio]').change(function () {
+                updateControlStates();
+                const mode = $('input[name=mode]:checked').val();
+                if (mode === 'automatic') {
+                    $('#control-form input[type=checkbox]').prop('disabled', true);
+                } else {
+                    $('#control-form input[type=checkbox]').prop('disabled', false);
+                }
+            });
+
+            $('#control-form input[type=checkbox]').change(function () {
+                if ($('input[name=mode]:checked').val() === 'manual') {
+                    updateControlStates();
+                }
+            });
+
+            $('#control-form input[type=checkbox]').click(function () {
+                if ($('input[name=mode]:checked').val() === 'manual') {
+                    updateControlStates();
+                }
+            });
+
+            // Periodically update the greenhouse data every 5 seconds
+            setInterval(function () {
+                updateGreenhouseData();
+            }, 60000);
+
+            // Initialize control buttons state based on the initial mode selection
+            const initialMode = $('input[name=mode]:checked').val();
+            if (initialMode === 'automatic') {
+                $('#control-form input[type=checkbox]').prop('disabled', true);
+            }
+
+            // Reload button click event
+            $('#reload-button').click(function () {
+                updateGreenhouseData();
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Current state of the greenhouse</h1>
+    <div>
+        <p>Temperature: <span id="temperature">{{ greenhouse_data.temperature }}</span></p>
+        <p>Humidity: <span id="humidity">{{ greenhouse_data.humidity }}</span></p>
+        <p>Natural Light: <span id="natural_light">{{ greenhouse_data.natural_light }}</span></p>
+        <button id="reload-button">Reload</button>
+    </div>
+
+    <h2>Greenhouse controls</h2>
+    <form id="control-form" method="post" action="/api/update_controls">
+        <input type="radio" name="mode" value="manual" {{ 'checked' if mode == 'manual' else '' }}> Manual
+        <input type="radio" name="mode" value="automatic" {{ 'checked' if mode == 'automatic' else '' }}> Automatic
+        <br><br>
+        <label><input type="checkbox" name="heater" {{ 'checked' if control_states.heater else '' }}> Heater</label>
+        <label><input type="checkbox" name="cooler" {{ 'checked' if control_states.cooler else '' }}> Cooler</label>
+        <label><input type="checkbox" name="humidifier" {{ 'checked' if control_states.humidifier else '' }}> Humidifier</label>
+        <label><input type="checkbox" name="lights" {{ 'checked' if control_states.lights else '' }}> Lights</label>
+    </form>
+
+    <h3>Control states:</h3>
+    <p>Heater: <span>{{ 'ON' if control_states.heater else 'OFF' }}</span></p>
+    <p>Cooler: <span>{{ 'ON' if control_states.cooler else 'OFF' }}</span></p>
+    <p>Humidifier: <span>{{ 'ON' if control_states.humidifier else 'OFF' }}</span></p>
+    <p>Lights: <span>{{ 'ON' if control_states.lights else 'OFF' }}</span></p>
+</body>
+</html>
