@@ -71,15 +71,55 @@ headers = {
     "Content-Type": "application/json",
 }
 
+def deformat_coordinates(encoded_string):
+    decoded_string = base64.b64decode(encoded_string).decode('utf-8')
+    coordinates = decoded_string.split(';')
+    return coordinates
+
 def get_device_data(device_id, data_type="uplink_message"):
     url = f"{base_url}/devices/{device_id}/packages/storage/{data_type}"
     response = requests.get(url, headers=headers)
     return response.json()
 
+def extract_payload_data(payload_item):
+    current_dateTime = datetime.now()
+    received_at = payload_item['result']['received_at']
+
+    frm_payload = payload_item['result']['uplink_message']['frm_payload']
+    temperature, light = deformat_coordinates(frm_payload)
+    return {'temperature': temperature, 'light': light}
+
 def get_application_data(data_type="uplink_message"):
     url = f"{base_url}/{data_type}"
     response = requests.get(url, headers=headers)
-    return response.json()
+    response_text = response.text.replace("}\n{", "},\n{")
+    response_text = f"[{response_text}]"
+    data = json.loads(response_text)
+
+
+    test = [extract_payload_data(item) for item in data]
+    for item in data:
+        current_dateTime = datetime.now()
+        received_at = item['result']['received_at']
+
+        if True:
+            test.append(extract_payload_data(item))
+
+        year = received_at[0:4]
+        month = received_at[5:7]
+        day = received_at[8:10]
+
+        print(current_dateTime.year)
+        print(current_dateTime.month)
+        print(current_dateTime.day)
+
+        print(current_dateTime.date())
+        xx = str(current_dateTime.date())
+
+    print(test)
+
+
+    return data
 
 
 #=======================================================================================================================
