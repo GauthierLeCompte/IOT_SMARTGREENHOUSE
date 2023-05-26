@@ -116,7 +116,13 @@ def update_data():
 
     response = requests.get(url, headers=headers)
 
+
     if response.status_code == 200:
+        if response.content == b'':
+            greenhouse_data['temperature'] = "null"
+            greenhouse_data['humidity'] = "null"
+            greenhouse_data['natural_light'] = 'null'
+            return jsonify(greenhouse_data)
         data_str = response.content.decode("utf-8")
         data_list = data_str.strip().split("\n")
 
@@ -141,11 +147,10 @@ def update_data():
                     plotImages()
 
     else:
-
         # Simulated API call, update the greenhouse data with new values
-        greenhouse_data['temperature'] = '25.5'
-        greenhouse_data['humidity'] = '40'
-        greenhouse_data['natural_light'] = '75'
+        greenhouse_data['temperature'] = "null"
+        greenhouse_data['humidity'] = "null"
+        greenhouse_data['natural_light'] = "null"
     return jsonify(greenhouse_data)
 
 
@@ -162,6 +167,9 @@ def update_controls():
         control_states['cooler'] = 'cooler' in request.form
         control_states['humidifier'] = 'humidifier' in request.form
         control_states['lights'] = 'lights' in request.form
+    elif greenhouse_data['humidity'] == 'null' or greenhouse_data['temperature'] == 'null' or greenhouse_data[
+        'humidity'] == 'null':
+        return ''
     elif mode == 'automatic':
         temperature = float(greenhouse_data['temperature'])
         humidity = float(greenhouse_data['humidity'])
