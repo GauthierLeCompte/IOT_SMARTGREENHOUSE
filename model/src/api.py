@@ -1,16 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from flask import Blueprint, jsonify, request
 from src.model import predict_input, predict_input_three_day
 from src import db
-from src.database.models import Prediction, Prediction_3_Days
+from src.database.models import Prediction, Prediction_3_Days, Measurement
 
 modelAPI_bl = Blueprint('modelAPI', __name__)
 
 
 @modelAPI_bl.route('/model/ping', methods=['GET'])
 def get():
-    response={"pong":"pong"}
+    response = {"pong":"pong"}
     return jsonify(response), 200
 
 
@@ -31,9 +31,13 @@ def predict():
         'status': 'Prediction successful'
     }
 
+    # add prediction to db
     if db.session.query(Prediction).filter_by(date=data['DATE']).first() is None:
         db.session.add(Prediction(data['DATE'], prediction))
         db.session.commit()
+
+    # remove data older than a month to remain lightweight
+    remove_old_data(data['DATE'])
 
     return jsonify(response), 200
 
@@ -59,22 +63,19 @@ def predict_three_day():
         db.session.add(Prediction_3_Days(data['DATE'], prediction))
         db.session.commit()
 
+    # remove data older than a month to remain lightweight
+    remove_old_data(data['DATE'])
+
     return jsonify(response), 200
 
-# @modelAPI_bl.route('/model/predict_all', methods=['POST'])
-# def predict_all():
-#     """
-#     Endpoint for making all predictions (probably not necessary)
-#
-#     :return:
-#     """
-#
-#     # predict
-#     prediction = predict_all()
-#     response = {
-#         'prediction': prediction,
-#         'success': True,
-#         'status': 'Prediction successful'
-#     }
-#
-#     return jsonify(response), 200
+
+
+
+def remove_old_data(date):
+    """
+    Removes all database entries older than given date. Always called in prediction function in order to keep everything lightweight.
+    """
+    db.session.query(Prediction).filter(Prediction.date < (date - timedelta(days=31))).delete()
+    db.session.query(Measurement).filter(Prediction.date < (date - timedelta(days=31))).delete()
+    db.session.query(Prediction_3_Days).filter(Prediction.date < (date - timedelta(days=31))).delete()
+    db.session.commit()

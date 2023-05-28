@@ -34,11 +34,12 @@ def upload_data():
     """
 
     # load data from request
-    # data = Request.get_json
-    # if PREDICTION_VALUES not in data.keys():
-    #     return jsonify({'success': False, 'status': 'No input data received'}), 400
-    # TODO: remove dummy data below and use actual input
-    data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
+    data = request.get_json()
+    if PREDICTION_VALUES not in data.keys():
+        return jsonify({'success': False, 'status': 'No input data received'}), 400
+
+    # dummy data below, outcomment lines above
+    # data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
 
     # load date
     date = datetime.now().date()
@@ -66,9 +67,11 @@ def request_prediction():
     """
 
     # load date from request data
-    # data = request.get_json()
-    # TODO: remove statement below
-    data = {'DATE': datetime.now().date()}
+    data = request.get_json()
+
+    # dummy data below, outcomment line above
+    # data = {'DATE': datetime.now().date()}
+
     if not (data['DATE']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404
 
@@ -89,9 +92,11 @@ def request_three_day_prediction():
     """
 
     # load date from request data
-    # data = request.get_json()
-    # TODO: remove statement below
-    data = {'DATE': datetime.now().date()}
+    data = request.get_json()
+
+    # dummy data below, outcomment line above
+    # data = {'DATE': datetime.now().date()}
+
     if not (data['DATE']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404
 
@@ -174,14 +179,3 @@ def load_all_3_day_predictions():
 
     return jsonify({'success': True, 'predictions': results}), 200
 
-
-# @api_bl.route('/api/predict', methods=['GET'])
-# def request_prediction_all():
-#     """
-#     Makes predictions for all available dates in database.
-#     """
-#
-#     r = requests.post(url="http://iot_model/model/predict_all").json()
-#
-#     response = {"success": True, 'predictions': r}
-#     return jsonify(response), 200
