@@ -1,7 +1,8 @@
 from flask.cli import FlaskGroup
 import pandas as pd
 from src import create_app, db
-from src.model import train_model, test_model, preprocess_data
+from src.model import train_model, test_model
+from src.preprocessing import preprocess_data
 from os import path
 
 app = create_app()

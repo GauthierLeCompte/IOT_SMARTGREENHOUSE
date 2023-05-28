@@ -1,5 +1,7 @@
 version: '3.6'
-
+networks:
+  iot_net:
+    driver: bridge
 services:
 
   api:
@@ -15,14 +17,18 @@ services:
     environment:
     - FLASK_DEBUG=1
     - APP_SETTINGS=src.config.DevelopmentConfig
-    container_name: iot_api
+    container_name: api
+    networks:
+      - iot_net
     depends_on:
       - iot_database
-      - iot_model
+      - model
 
-  iot_model:
+  model:
     ports:
       - 5002:5000
+    expose:
+      - '5000'
     build:
       context: ./model
       dockerfile: DockerFile
@@ -33,7 +39,9 @@ services:
       - APP_SETTINGS=src.config.DevelopmentConfig
     depends_on:
       - iot_database
-    container_name: iot_model
+    container_name: model
+    networks:
+      - iot_net
 
   iot_database:
     environment:
@@ -45,6 +53,8 @@ services:
       context: ./database
       dockerfile: DockerFile
     container_name: iot_db
+    networks:
+      - iot_net
 
 #  nginx:
 #    build:
@@ -55,7 +65,7 @@ services:
 #      - 80:80
 #    depends_on:
 #      - iot_database
-#      - iot_model
+#      - model
 #      - api
 
 

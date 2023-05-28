@@ -14,8 +14,8 @@ def create_app(script_info=None):
     # set up extensions
     db.init_app(app)
     # register blueprints
-    from src.model import model_bl
-    app.register_blueprint(model_bl)
+    from src.api import modelAPI_bl
+    app.register_blueprint(modelAPI_bl)
     # shell context for flask cli
     @app.shell_context_processor
     def ctx():

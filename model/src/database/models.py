@@ -1,5 +1,4 @@
 from src import db
-from sqlalchemy.types import Date
 
 class Measurement(db.Model):
     """
@@ -74,4 +73,3 @@ class Prediction_3_Days(db.Model):
             'date': self.date,
             'prediction': self.prediction
         }
-

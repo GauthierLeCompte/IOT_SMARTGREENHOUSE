@@ -1,0 +1,80 @@
+from datetime import datetime
+import json
+from flask import Blueprint, jsonify, request
+from src.model import predict_input, predict_input_three_day
+from src import db
+from src.database.models import Prediction, Prediction_3_Days
+
+modelAPI_bl = Blueprint('modelAPI', __name__)
+
+
+@modelAPI_bl.route('/model/ping', methods=['GET'])
+def get():
+    response={"pong":"pong"}
+    return jsonify(response), 200
+
+
+@modelAPI_bl.route('/model/predict', methods=['POST', 'GET'])
+def predict():
+    """
+    Endpoint for making single prediction
+    :return:
+    """
+    # load request data
+    data = json.loads(request.get_json())
+
+    # predict
+    prediction = predict_input(data['DATE'])
+    response = {
+        'prediction': prediction,
+        'success': True,
+        'status': 'Prediction successful'
+    }
+
+    if db.session.query(Prediction).filter_by(date=data['DATE']).first() is None:
+        db.session.add(Prediction(data['DATE'], prediction))
+        db.session.commit()
+
+    return jsonify(response), 200
+
+
+@modelAPI_bl.route('/model/predict3', methods=['POST', 'GET'])
+def predict_three_day():
+    """
+    Endpoint for making a prediction based on three days since given date
+    :return:
+    """
+    # load request data
+    # data = json.loads(request.get_json())
+    data = {'DATE':datetime.now().date()}
+    # predict
+    prediction = predict_input_three_day(data['DATE'])
+    response = {
+        'prediction': prediction,
+        'success': True,
+        'status': 'Prediction successful'
+    }
+
+    if db.session.query(Prediction_3_Days).filter_by(date=data['DATE']).first() is None:
+        db.session.add(Prediction_3_Days(data['DATE'], prediction))
+        db.session.commit()
+
+    return jsonify(response), 200
+
+# @modelAPI_bl.route('/model/predict_all', methods=['POST'])
+# def predict_all():
+#     """
+#     Endpoint for making all predictions (probably not necessary)
+#
+#     :return:
+#     """
+#
+#     # predict
+#     prediction = predict_all()
+#     response = {
+#         'prediction': prediction,
+#         'success': True,
+#         'status': 'Prediction successful'
+#     }
+#
+#     return jsonify(response), 200
