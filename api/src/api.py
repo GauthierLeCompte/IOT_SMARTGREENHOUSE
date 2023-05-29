@@ -14,7 +14,7 @@ PREDICTION_VALUES = ['TEMP_IN', 'HUMIDITY', 'LAMP_STATUS', 'RAINN_STATUS']
 
 @api_bl.route('/api/ping', methods=['GET'])
 def get():
-    response = {"pang": "pong"}
+    response = {"please": "werk haha?"}
     print("yellow")
     return jsonify(response), 200
 
