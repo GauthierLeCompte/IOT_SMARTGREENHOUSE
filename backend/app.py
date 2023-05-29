@@ -50,12 +50,32 @@ def update_status():
 # Get prediction from model
 @app.route('/api/get-prediction', methods=['GET'])
 def get_prediction():
-    # Make a request to the /api/predict endpoint
-    response = requests.get('http://127.0.0.1:5001/api/predict')
-    print(response)
+    '''base_url = 'http://model:5000/model/predict'
+    endpoint = "/api/ping"
+    url = base_url
+    headers = {'Content-Type': 'application/json'}
+
+    response = requests.get(url, headers=headers)
+    print("oke good response?")
 
     # If the request was successful, return the prediction
     if response.status_code == 200:
+        print("oke good response whooooo?")
+        print(jsonify(response.json()))
+        return jsonify(response.json())'''
+
+    # Make a request to the /api/predict endpoint
+    date = '2023-05-28'  # Replace with the desired date
+    url = 'http://model:5000/model/predict'
+    headers = {'Content-Type': 'application/json'}
+    data = json.dumps({'DATE': date})
+
+    response = requests.get(url, headers=headers, data=data)
+    print("oke good response?")
+
+    # If the request was successful, return the prediction
+    if response.status_code == 200:
+        print("oke good response?")
         return jsonify(response.json())
     else:
         return Response("Error when getting prediction", status=response.status_code)

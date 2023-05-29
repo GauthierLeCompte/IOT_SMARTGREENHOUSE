@@ -1,22 +1,26 @@
-version: '3.6'
+version: '2.1'
 networks:
   iot_net:
     driver: bridge
-services:
+volumes:
+  api_vol:
+  model_vol:
+  data_vol:
+  db_vol:
 
+services:
   api:
     build:
       context: ./api
       dockerfile: DockerFile
     volumes:
-    - './api:/usr/src/app'
+    - api_vol:/usr/src/app
     ports:
-      - 5001:5000
-#    expose:
-#      - '5000'
+      - 80:5000
     environment:
     - FLASK_DEBUG=1
     - APP_SETTINGS=src.config.DevelopmentConfig
+    - FLASK_ENV=development
     container_name: api
     networks:
       - iot_net
@@ -26,17 +30,19 @@ services:
 
   model:
     ports:
-      - 5002:5000
+      - 81:5000
     expose:
       - '5000'
     build:
       context: ./model
       dockerfile: DockerFile
     volumes:
-      - './model:/usr/src/app'
+      - model_vol:/usr/src/app
+      - data_vol:/usr/src/app/data
     environment:
       - FLASK_DEBUG=1
       - APP_SETTINGS=src.config.DevelopmentConfig
+      - FLASK_ENV=development
     depends_on:
       - iot_database
     container_name: model
@@ -48,24 +54,12 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
     ports:
-      - 5435:5432
+      - 5432:5432
     build:
       context: ./database
       dockerfile: DockerFile
+    volumes:
+      - db_vol:/var/lib/postgresql/data
     container_name: iot_db
     networks:
       - iot_net
-
-#  nginx:
-#    build:
-#      context: ./nginx
-#      dockerfile: DockerFile
-#    restart: always
-#    ports:
-#      - 80:80
-#    depends_on:
-#      - iot_database
-#      - model
-#      - api
-
-

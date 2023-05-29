@@ -17,6 +17,8 @@ COPY ./run.sh /usr/src/app/run.sh
 RUN chmod +x /usr/src/app/run.sh
 # add app
 COPY . /usr/src/app
+
+
 # new
 # run server
 CMD ["/usr/src/app/run.sh"]

@@ -10,7 +10,7 @@ modelAPI_bl = Blueprint('modelAPI', __name__)
 
 @modelAPI_bl.route('/model/ping', methods=['GET'])
 def get():
-    response = {"pong":"pong"}
+    response = {"phaaung":"pang"}
     return jsonify(response), 200
 
 

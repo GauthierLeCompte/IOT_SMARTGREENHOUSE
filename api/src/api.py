@@ -14,7 +14,8 @@ PREDICTION_VALUES = ['TEMP_IN', 'HUMIDITY', 'LAMP_STATUS', 'RAINN_STATUS']
 
 @api_bl.route('/api/ping', methods=['GET'])
 def get():
-    response = {"pong": "pong"}
+    response = {"pang": "pong"}
+    print("yellow")
     return jsonify(response), 200
 
 
@@ -34,12 +35,12 @@ def upload_data():
     """
 
     # load data from request
-    data = request.get_json()
-    if PREDICTION_VALUES not in data.keys():
-        return jsonify({'success': False, 'status': 'No input data received'}), 400
+    #data = request.get_json()
+    #if PREDICTION_VALUES not in data.keys():
+        #return jsonify({'success': False, 'status': 'No input data received'}), 400
 
     # dummy data below, outcomment lines above
-    # data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
+    data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
 
     # load date
     date = datetime.now().date()
@@ -67,10 +68,10 @@ def request_prediction():
     """
 
     # load date from request data
-    data = request.get_json()
+    #data = request.get_json()
 
     # dummy data below, outcomment line above
-    # data = {'DATE': datetime.now().date()}
+    data = {'DATE': datetime.now().date()}
 
     if not (data['DATE']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404

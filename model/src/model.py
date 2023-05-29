@@ -109,5 +109,3 @@ def predict_input_three_day(date):
     # predict
     data['prediction'] = model.predict(data)
     return data['prediction'].iloc[0]
-
-
