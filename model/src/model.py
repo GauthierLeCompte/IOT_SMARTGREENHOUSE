@@ -65,7 +65,8 @@ def predict_input(date):
 
     # load required data from date
     data = db.session.query(Measurement.temp_indoor, Measurement.humidity, Measurement.lamp_status).filter_by(date=date).all()
-    if data is None:
+
+    if len(data) == 0:
         return None
 
     # translate to dict for accessibility reasons

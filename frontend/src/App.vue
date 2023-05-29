@@ -5,6 +5,8 @@
     <button @click="getPrediction">Get Prediction</button>
     <div v-if="prediction">Prediction: {{ prediction }}</div>
 
+    <button @click="refreshData">Refresh Data()</button>
+
     <div>
       <label for="temperature">Temperatureeeeeeee:</label>
       <input type="number" id="temperature" v-model.number="desiredStatus.temperature" />
@@ -56,6 +58,10 @@ export default {
       console.log("Updating status with:", this.desiredStatus);
       await axios.post('http://127.0.0.1:5000/api/update', this.desiredStatus);
       this.getStatus();
+    },
+    async refreshData() {
+      const response = await axios.get('http://127.0.0.1:5000/api/get-application-data')
+      console.log(response.data)
     },
     async getPrediction() {
       try {

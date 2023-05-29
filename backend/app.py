@@ -2,8 +2,9 @@ from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import base64
+import decodeSensorData
 
 
 #=======================================================================================================================
@@ -24,7 +25,6 @@ greenhouse_status = {
     "humidity": 50,
     "sprinklers": False
 }
-
 
 #=======================================================================================================================
 #                                                       API CALLS
@@ -50,22 +50,34 @@ def update_status():
 # Get prediction from model
 @app.route('/api/get-prediction', methods=['GET'])
 def get_prediction():
-    '''base_url = 'http://model:5000/model/predict'
-    endpoint = "/api/ping"
-    url = base_url
+    #base_url = 'https://16bf8e6febf3d5908a8216acba666f71.balena-devices.com'
+    base_url = 'http://127.0.0.1:5001'
+    endpoint = "/api/predict"
+    url = base_url + endpoint
+    yesterday = datetime.now().date() - timedelta(days=0)
+
+    year = int(yesterday.year)
+    month = int(yesterday.month)
+    day = int(yesterday.day)
+
+    # return data
+    data = {'year': year, 'month': month, 'day': day}
+
+    data = json.dumps(data, indent=4, sort_keys=True)
+
     headers = {'Content-Type': 'application/json'}
 
-    response = requests.get(url, headers=headers)
-    print("oke good response?")
+    response = requests.post(url, headers=headers, json=data)
 
     # If the request was successful, return the prediction
     if response.status_code == 200:
-        print("oke good response whooooo?")
         print(jsonify(response.json()))
-        return jsonify(response.json())'''
+        return jsonify(response.json())
+    else:
+        return jsonify(response.json())
 
     # Make a request to the /api/predict endpoint
-    date = '2023-05-28'  # Replace with the desired date
+    '''date = '2023-05-28'  # Replace with the desired date
     url = 'http://model:5000/model/predict'
     headers = {'Content-Type': 'application/json'}
     data = json.dumps({'DATE': date})
@@ -78,7 +90,7 @@ def get_prediction():
         print("oke good response?")
         return jsonify(response.json())
     else:
-        return Response("Error when getting prediction", status=response.status_code)
+        return Response("Error when getting prediction", status=response.status_code)'''
 
 
 #=======================================================================================================================
@@ -90,6 +102,18 @@ headers = {
     "Authorization": "Bearer NNSXS.DWSHILY54MRI6PDGLCUL3YK7A3JJFKHLGCN55XQ.HPQPPV2P3KKHKBUY3KUAAPLEJXK65GSRQZRLYAYFWGZG3RQNQ3NA",
     "Content-Type": "application/json",
 }
+
+greenhouse_data = {
+    'temperature': '',
+    'humidity': '',
+    'natural_light': ''
+}
+
+hours = []
+minutes = []
+temp=[]
+hum=[]
+lights=[]
 
 def deformat_coordinates(encoded_string):
     decoded_string = base64.b64decode(encoded_string).decode('utf-8')
@@ -109,10 +133,65 @@ def extract_payload_data(payload_item):
     temperature, light = deformat_coordinates(frm_payload)
     return {'temperature': temperature, 'light': light}
 
+@app.route('/api/get-application-data', methods=['GET'])
 def get_application_data(data_type="uplink_message"):
+    current_date = datetime.today().strftime("%Y-%m-%d")
     url = f"{base_url}/{data_type}"
     response = requests.get(url, headers=headers)
-    response_text = response.text.replace("}\n{", "},\n{")
+    last_timestamp = "2023-05-24T00:00:00Z"
+
+    # base_url2 = 'https://16bf8e6febf3d5908a8216acba666f71.balena-devices.com'
+    base_url2 = 'http://127.0.0.1:5001'
+    endpoint2 = "/api/upload"
+    url2 = base_url2 + endpoint2
+
+    if response.status_code == 200:
+        if response.content == b'':
+            greenhouse_data['temperature'] = "null"
+            greenhouse_data['humidity'] = "null"
+            greenhouse_data['natural_light'] = 'null'
+            return jsonify(greenhouse_data)
+        data_str = response.content.decode("utf-8")
+        data_list = data_str.strip().split("\n")
+
+        # Write each JSON object to a separate file
+        for i, data in enumerate(data_list):
+            if json.loads(data)['result']['received_at'] > last_timestamp:
+                last_timestamp = json.loads(data)['result']['received_at']
+                values = json.loads(data)['result']["uplink_message"]["frm_payload"]
+                temperature, humidity, light = decodeSensorData.decode_sensordata(values)
+                greenhouse_data['temperature'] = (temperature)
+                greenhouse_data['humidity'] = (humidity)
+                greenhouse_data['natural_light'] = (light)
+
+                upload_data = {
+                    "TEMP_IN": greenhouse_data['temperature'],
+                    "HUMIDITY": greenhouse_data['humidity'],
+                    "LIGHT": {"BLUE": light[0],  "RED": light[1]}
+                }
+
+                # POST request to upload_data API
+                response_upload = requests.post(url=url2, json=upload_data)
+
+                #rint(upload_data)
+                if response_upload.status_code == 200:
+                    print("Successfully uploaded data")
+                else:
+                    print(f"Failed to upload data. Status code: {response_upload.status_code}")
+
+                '''if json.loads(data)['result']['received_at'][0:10] == current_date:
+                    global hours, minutes, temp, hum, lights
+                    minute = int(json.loads(data)['result']['received_at'][14:16])
+                    hour = float(json.loads(data)['result']['received_at'][11:13]) + (minute/60)
+                    hours.append(hour)
+                    temp.append(temperature)
+                    hum.append(humidity)
+                    lights.append(light[0])'''
+        return jsonify({'success': True}), 200
+    else:
+        return jsonify({'success': False}), 404
+
+    '''response_text = response.text.replace("}\n{", "},\n{")
     response_text = f"[{response_text}]"
     data = json.loads(response_text)
 
@@ -137,9 +216,7 @@ def get_application_data(data_type="uplink_message"):
         xx = str(current_dateTime.date())
 
     print(test)
-
-
-    return data
+    return data'''
 
 
 #=======================================================================================================================

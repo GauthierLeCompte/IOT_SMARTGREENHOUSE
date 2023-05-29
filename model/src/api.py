@@ -10,6 +10,7 @@ modelAPI_bl = Blueprint('modelAPI', __name__)
 
 @modelAPI_bl.route('/model/ping', methods=['GET'])
 def get():
+    print("TOT HIER")
     response = {"phaaung":"pang"}
     return jsonify(response), 200
 
@@ -22,9 +23,14 @@ def predict():
     """
     # load request data
     data = json.loads(request.get_json())
+    # data = {'DATE': datetime.now().date()}
+    data = datetime(data['year'], data['month'], data['day'])
 
     # predict
-    prediction = predict_input(data['DATE'])
+    prediction = predict_input(data)
+    if prediction is None:
+        return jsonify({'success': False, 'status': 'data not found'}), 404
+
     response = {
         'prediction': prediction,
         'success': True,
@@ -32,15 +38,13 @@ def predict():
     }
 
     # add prediction to db
-    if db.session.query(Prediction).filter_by(date=data['DATE']).first() is None:
-        db.session.add(Prediction(data['DATE'], prediction))
+    if db.session.query(Prediction).filter_by(date=data).first() is None:
+        db.session.add(Prediction(data, prediction))
         db.session.commit()
 
     # remove data older than a month to remain lightweight
-    remove_old_data(data['DATE'])
-
+    remove_old_data(data)
     return jsonify(response), 200
-
 
 @modelAPI_bl.route('/model/predict3', methods=['POST', 'GET'])
 def predict_three_day():
@@ -49,27 +53,25 @@ def predict_three_day():
     :return:
     """
     # load request data
-    # data = json.loads(request.get_json())
-    data = {'DATE':datetime.now().date()}
+    data = json.loads(request.get_json())
+    # data = {'DATE':datetime.now().date()}
+    data = datetime(data['year'], data['month'], data['day'])
+
     # predict
-    prediction = predict_input_three_day(data['DATE'])
+    prediction = predict_input_three_day(data)
     response = {
         'prediction': prediction,
         'success': True,
         'status': 'Prediction successful'
     }
 
-    if db.session.query(Prediction_3_Days).filter_by(date=data['DATE']).first() is None:
-        db.session.add(Prediction_3_Days(data['DATE'], prediction))
+    if db.session.query(Prediction_3_Days).filter_by(date=data).first() is None:
+        db.session.add(Prediction_3_Days(data, prediction))
         db.session.commit()
 
     # remove data older than a month to remain lightweight
-    remove_old_data(data['DATE'])
-
+    remove_old_data(data)
     return jsonify(response), 200
-
-
-
 
 def remove_old_data(date):
     """

@@ -6,15 +6,13 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
 
-
 api_bl = Blueprint('api', __name__)
 
-PREDICTION_VALUES = ['TEMP_IN', 'HUMIDITY', 'LAMP_STATUS', 'RAINN_STATUS']
-
+PREDICTION_VALUES = ['TEMP_IN', 'HUMIDITY', 'LAMP_STATUS']
 
 @api_bl.route('/api/ping', methods=['GET'])
 def get():
-    response = {"please": "werk haha?"}
+    response = {"please": "werk AUUUBBB 222"}
     print("yellow")
     return jsonify(response), 200
 
@@ -35,12 +33,12 @@ def upload_data():
     """
 
     # load data from request
-    #data = request.get_json()
-    #if PREDICTION_VALUES not in data.keys():
-        #return jsonify({'success': False, 'status': 'No input data received'}), 400
+    data = request.get_json()
+    '''if PREDICTION_VALUES not in data.keys():
+        return jsonify({'success': False, 'status': 'No input data received'}), 400'''
 
     # dummy data below, outcomment lines above
-    data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
+    # data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
 
     # load date
     date = datetime.now().date()
@@ -66,24 +64,24 @@ def request_prediction():
     """
     Receives a date in the request and makes prediction for that date. Then stores prediction.
     """
-
     # load date from request data
-    #data = request.get_json()
+    data = json.loads(request.get_json())
+    #data = {'DATE': datetime.now().date()}
 
-    # dummy data below, outcomment line above
-    data = {'DATE': datetime.now().date()}
-
-    if not (data['DATE']):
+    if not (data['year']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404
 
     # json dump due to date
-    data = json.dumps(data, indent=4, sort_keys=True, default=str)
+    data = json.dumps(data, indent=4, sort_keys=True)
 
     # send http request to model container
     r = requests.post(url="http://model:5000/model/predict", json=data).json()
 
-    response = {"success": True, 'prediction': r['prediction']}
-    return jsonify(response), 200
+    if r['success'] == False:
+        return jsonify(r), 404
+    else:
+        response = {"success": True, 'prediction': r['prediction']}
+        return jsonify(response), 200
 
 
 @api_bl.route('/api/predict3', methods=['GET', 'POST'])
@@ -91,24 +89,24 @@ def request_three_day_prediction():
     """
     Receives a date in the request and makes a combined prediction for the last three dates. Then stores prediction.
     """
-
     # load date from request data
     data = request.get_json()
-
-    # dummy data below, outcomment line above
     # data = {'DATE': datetime.now().date()}
 
-    if not (data['DATE']):
+    if not (data['year']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404
 
     # json dump due to date
-    data = json.dumps(data, indent=4, sort_keys=True, default=str)
+    data = json.dumps(data, indent=4, sort_keys=True)
 
     # send http request to model container
     r = requests.post(url="http://model:5000/model/predict3", json=data).json()
 
-    response = {"success": True, 'prediction': r['prediction']}
-    return jsonify(response), 200
+    if r['success'] == False:
+        return jsonify(r), 404
+    else:
+        response = {"success": True, 'prediction': r['prediction']}
+        return jsonify(response), 200
 
 
 @api_bl.route('/api/measurements', methods=['GET'])
@@ -116,7 +114,6 @@ def load_measurements():
     """
     Loads all predictions from database
     """
-
     # load all measurements from db
     measurements = db.session.query(Measurement).all()
     if not measurements:
