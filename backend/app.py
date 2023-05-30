@@ -15,9 +15,6 @@ import decodeSensorData
 app = Flask(__name__)
 CORS(app)
 
-# Register the Blueprint from your api.py
-#app.register_blueprint(api_bl)
-
 # Store the greenhouse status as a Python dictionary
 greenhouse_status = {
     "temperature": 20,
@@ -76,22 +73,6 @@ def get_prediction():
     else:
         return jsonify(response.json())
 
-    # Make a request to the /api/predict endpoint
-    '''date = '2023-05-28'  # Replace with the desired date
-    url = 'http://model:5000/model/predict'
-    headers = {'Content-Type': 'application/json'}
-    data = json.dumps({'DATE': date})
-
-    response = requests.get(url, headers=headers, data=data)
-    print("oke good response?")
-
-    # If the request was successful, return the prediction
-    if response.status_code == 200:
-        print("oke good response?")
-        return jsonify(response.json())
-    else:
-        return Response("Error when getting prediction", status=response.status_code)'''
-
 
 #=======================================================================================================================
 #                                                CONNECTION TO THE CLOUD
@@ -116,33 +97,6 @@ hum=[]
 lights=[]
 last_timestamp = "2023-05-24T00:00:00Z"
 
-last_file_read_time = "2023-05-24T00:00:00Z"
-# Open the file in read mode ('r')
-with open('last_time.txt', 'r') as f:
-    # Read the entire content of the file
-    last_file_read_time = f.read()
-
-if last_file_read_time == "":
-    last_file_read_time = "2023-05-24T00:00:00Z"
-
-def deformat_coordinates(encoded_string):
-    decoded_string = base64.b64decode(encoded_string).decode('utf-8')
-    coordinates = decoded_string.split(';')
-    return coordinates
-
-def get_device_data(device_id, data_type="uplink_message"):
-    url = f"{base_url}/devices/{device_id}/packages/storage/{data_type}"
-    response = requests.get(url, headers=headers)
-    return response.json()
-
-def extract_payload_data(payload_item):
-    current_dateTime = datetime.now()
-    received_at = payload_item['result']['received_at']
-
-    frm_payload = payload_item['result']['uplink_message']['frm_payload']
-    temperature, light = deformat_coordinates(frm_payload)
-    return {'temperature': temperature, 'light': light}
-
 @app.route('/api/get-application-data', methods=['GET'])
 def get_application_data(data_type="uplink_message"):
     # current_date = datetime.today().strftime("%Y-%m-%d")
@@ -151,9 +105,18 @@ def get_application_data(data_type="uplink_message"):
     global last_timestamp
 
     base_url2 = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
-    # base_url2 = 'http://127.0.0.1:5001'
     endpoint2 = "/api/upload"
     url2 = base_url2 + endpoint2
+
+    last_file_read_time = "2023-05-24T00:00:00Z"
+
+    # Open the file in read mode ('r')
+    with open('last_time.txt', 'r') as f:
+        # Read the entire content of the file
+        last_file_read_time = f.read()
+
+    if last_file_read_time == "":
+        last_file_read_time = "2023-05-24T00:00:00Z"
 
     if response.status_code == 200:
         if response.content == b'':
@@ -167,7 +130,10 @@ def get_application_data(data_type="uplink_message"):
         # Write each JSON object to a separate file
         for i, data in enumerate(data_list):
             if json.loads(data)['result']['received_at'] > last_timestamp:
+                print("Received Data: ", json.loads(data)['result']['received_at'])
+                print("Last Data Read Time: ", last_file_read_time)
                 if json.loads(data)['result']['received_at'] > last_file_read_time:
+                    last_file_read_time = json.loads(data)['result']['received_at']
                     last_timestamp = json.loads(data)['result']['received_at']
                     values = json.loads(data)['result']["uplink_message"]["frm_payload"]
                     temperature, humidity, light = decodeSensorData.decode_sensordata(values)
