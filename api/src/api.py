@@ -175,4 +175,3 @@ def load_all_3_day_predictions():
         results.append(prediction.to_dict())
 
     return jsonify({'success': True, 'predictions': results}), 200
-

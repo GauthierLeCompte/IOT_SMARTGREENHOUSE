@@ -50,7 +50,7 @@ def update_status():
 # Get prediction from model
 @app.route('/api/get-prediction', methods=['GET'])
 def get_prediction():
-    base_url = 'https://b271b7fc6568b59c865b4ee4e2bae414.balena-devices.com'
+    base_url = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
     # base_url = 'http://127.0.0.1:5001'
     endpoint = "/api/predict"
     url = base_url + endpoint
@@ -114,6 +114,16 @@ minutes = []
 temp=[]
 hum=[]
 lights=[]
+last_timestamp = "2023-05-24T00:00:00Z"
+
+last_file_read_time = "2023-05-24T00:00:00Z"
+# Open the file in read mode ('r')
+with open('last_time.txt', 'r') as f:
+    # Read the entire content of the file
+    last_file_read_time = f.read()
+
+if last_file_read_time == "":
+    last_file_read_time = "2023-05-24T00:00:00Z"
 
 def deformat_coordinates(encoded_string):
     decoded_string = base64.b64decode(encoded_string).decode('utf-8')
@@ -135,12 +145,12 @@ def extract_payload_data(payload_item):
 
 @app.route('/api/get-application-data', methods=['GET'])
 def get_application_data(data_type="uplink_message"):
-    current_date = datetime.today().strftime("%Y-%m-%d")
+    # current_date = datetime.today().strftime("%Y-%m-%d")
     url = f"{base_url}/{data_type}"
     response = requests.get(url, headers=headers)
-    last_timestamp = "2023-05-24T00:00:00Z"
+    global last_timestamp
 
-    base_url2 = 'https://b271b7fc6568b59c865b4ee4e2bae414.balena-devices.com'
+    base_url2 = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
     # base_url2 = 'http://127.0.0.1:5001'
     endpoint2 = "/api/upload"
     url2 = base_url2 + endpoint2
@@ -157,66 +167,36 @@ def get_application_data(data_type="uplink_message"):
         # Write each JSON object to a separate file
         for i, data in enumerate(data_list):
             if json.loads(data)['result']['received_at'] > last_timestamp:
-                last_timestamp = json.loads(data)['result']['received_at']
-                values = json.loads(data)['result']["uplink_message"]["frm_payload"]
-                temperature, humidity, light = decodeSensorData.decode_sensordata(values)
-                greenhouse_data['temperature'] = (temperature)
-                greenhouse_data['humidity'] = (humidity)
-                greenhouse_data['natural_light'] = (light)
+                if json.loads(data)['result']['received_at'] > last_file_read_time:
+                    last_timestamp = json.loads(data)['result']['received_at']
+                    values = json.loads(data)['result']["uplink_message"]["frm_payload"]
+                    temperature, humidity, light = decodeSensorData.decode_sensordata(values)
+                    greenhouse_data['temperature'] = (temperature)
+                    greenhouse_data['humidity'] = (humidity)
+                    greenhouse_data['natural_light'] = (light)
 
-                upload_data = {
-                    "TEMP_IN": greenhouse_data['temperature'],
-                    "HUMIDITY": greenhouse_data['humidity'],
-                    "LIGHT": {"BLUE": light[0],  "RED": light[1]}
-                }
+                    with open('last_time.txt', 'w') as f:
+                        # Write text to the file
+                        f.write(last_file_read_time)
 
-                # POST request to upload_data API
-                response_upload = requests.post(url=url2, json=upload_data)
+                    upload_data = {
+                        "TEMP_IN": greenhouse_data['temperature'],
+                        "HUMIDITY": greenhouse_data['humidity'],
+                        "LIGHT": {"BLUE": light[0],  "RED": light[1]}
+                    }
 
-                #rint(upload_data)
-                if response_upload.status_code == 200:
-                    print("Successfully uploaded data")
-                else:
-                    print(f"Failed to upload data. Status code: {response_upload.status_code}")
+                    # POST request to upload_data API
+                    response_upload = requests.post(url=url2, json=upload_data)
 
-                '''if json.loads(data)['result']['received_at'][0:10] == current_date:
-                    global hours, minutes, temp, hum, lights
-                    minute = int(json.loads(data)['result']['received_at'][14:16])
-                    hour = float(json.loads(data)['result']['received_at'][11:13]) + (minute/60)
-                    hours.append(hour)
-                    temp.append(temperature)
-                    hum.append(humidity)
-                    lights.append(light[0])'''
+                    #rint(upload_data)
+                    if response_upload.status_code == 200:
+                        print("Successfully uploaded data")
+                    else:
+                        print(f"Failed to upload data. Status code: {response_upload.status_code}")
+
         return jsonify({'success': True}), 200
     else:
         return jsonify({'success': False}), 404
-
-    '''response_text = response.text.replace("}\n{", "},\n{")
-    response_text = f"[{response_text}]"
-    data = json.loads(response_text)
-
-
-    test = [extract_payload_data(item) for item in data]
-    for item in data:
-        current_dateTime = datetime.now()
-        received_at = item['result']['received_at']
-
-        if True:
-            test.append(extract_payload_data(item))
-
-        year = received_at[0:4]
-        month = received_at[5:7]
-        day = received_at[8:10]
-
-        print(current_dateTime.year)
-        print(current_dateTime.month)
-        print(current_dateTime.day)
-
-        print(current_dateTime.date())
-        xx = str(current_dateTime.date())
-
-    print(test)
-    return data'''
 
 
 #=======================================================================================================================
