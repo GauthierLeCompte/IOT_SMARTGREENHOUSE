@@ -40,7 +40,9 @@ def upload_data():
     # data = {'TEMP_IN': 15.3, 'HUMIDITY': 50.6, 'LIGHT': {'BLUE': 60, 'RED': 17}}
 
     # load date
-    date = datetime.now().date()
+    # date = datetime.now().date()
+
+    data['DATE'] = datetime.strptime(data['DATE'], '%Y-%m-%d').date()
 
     # load TEMP OUT and RAIN_STATUS from weather api
     rain_status = None
@@ -51,7 +53,7 @@ def upload_data():
         lamp_status = 0
 
     # add new measurement to database
-    db.session.add(Measurement(date, data['TEMP_IN'], data['HUMIDITY'], lamp_status))
+    db.session.add(Measurement(data['DATE'], data['TEMP_IN'], data['HUMIDITY'], lamp_status))
     db.session.commit()
 
     response = {'success': True, 'message': 'Successfully uploaded measurement'}

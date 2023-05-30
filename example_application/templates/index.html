@@ -24,6 +24,13 @@
                 });
             }
 
+            function updatePrediction() {
+                $.get('/api/update_prediction', function (data) {
+                    $('#prediction').text(data.prediction);
+
+                });
+            }
+
             $('#control-form input[type=radio]').change(function () {
                 updateControlStates();
                 const mode = $('input[name=mode]:checked').val();
@@ -65,6 +72,12 @@
 
             });
 
+            // Get prediction click event
+            $('#get-prediciton').click(function () {
+                updatePrediction();
+
+            });
+
             // Initial image load
             updateGreenhouseData();
 
@@ -96,10 +109,17 @@
     <p>Cooler: <span>{{ 'ON' if control_states.cooler else 'OFF' }}</span></p>
     <p>Humidifier: <span>{{ 'ON' if control_states.humidifier else 'OFF' }}</span></p>
     <p>Lights: <span>{{ 'ON' if control_states.lights else 'OFF' }}</span></p>
-    <br><br>
+    <h3>Daily evolution of the greenhouse state</h3>
+
     <img id="temperature-chart" src="/static/temperature_graph.png" alt="Temperature Chart">
     <img id="humidity-chart" src="/static/humidity_graph.png" alt="Humidity Chart">
     <img id="lights-chart" src="/static/lights_graph.png" alt="Light Chart">
+
+    <h3>Monthly cost prediction</h3>
+    <p>Prediction: <span id="prediction">{{ Prediciton }}</span></p>
+
+    <button id="get-prediciton">Get Prediction</button>
+
 
 </body>
 </html>

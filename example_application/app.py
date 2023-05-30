@@ -2,7 +2,7 @@ from flask import Flask, render_template, jsonify, request, Response
 import requests
 import json
 import decodeSensorData
-from datetime import date
+from datetime import date, datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -17,12 +17,15 @@ lights=[]
 app = Flask(__name__, static_url_path='/static')
 
 last_timestamp = "2023-05-24T00:00:00Z"
+last_file_read_time = "2023-05-24T00:00:00Z"
+
 # Placeholder variables to store greenhouse data and control states
 greenhouse_data = {
     'temperature': '',
     'humidity': '',
     'natural_light': ''
 }
+Prediction = 7
 control_states = {
     'heater': False,
     'cooler': False,
@@ -101,12 +104,46 @@ def index():
                            mode=mode)
 
 
+@app.route('/api/update_prediction')
+def update_prediction():
+    global Prediction
+    base_url = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
+    endpoint = "/api/predict"
+    url = base_url + endpoint
+    yesterday = datetime.now().date() - timedelta(days=2)
+
+    year = int(yesterday.year)
+    month = int(yesterday.month)
+    day = int(yesterday.day)
+
+    # return data
+    data = {'year': year, 'month': month, 'day': day}
+
+    data = json.dumps(data, indent=4, sort_keys=True)
+
+    headers = {'Content-Type': 'application/json'}
+
+    response = requests.post(url, headers=headers, json=data)
+
+    # If the request was successful, return the prediction
+    if response.status_code == 200:
+        return jsonify(response.json())
+    return jsonify(response.json())
+
+
 @app.route('/api/update_data')
 def update_data():
+
     current_date = date.today().strftime("%Y-%m-%d")
     global last_timestamp
+    global last_file_read_time
     url = "https://eu1.cloud.thethings.network/api/v3/as/applications/smart-greenhouse-ntg/packages/storage/uplink_message"
-    url+="?after=2023-05-23T00:00:00Z"
+    url+=f"?after=2023-05-23T00:00:00Z"
+
+    base_url2 = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
+    endpoint2 = "/api/upload"
+    url2 = base_url2 + endpoint2
+
     api_key = "NNSXS.R5HQMCVUNLBJIKY6TZX2N4DG4VKWRRDBN7THQRY.VAFH6NLJ3WHXASHVEIBSUO2PQB2RDST4GA3JHCPUOVIUOSQXAPTA"
 
     headers = {
@@ -145,20 +182,38 @@ def update_data():
                     lights.append(light[0])
                     plotImages()
 
+
+                if json.loads(data)['result']['received_at'] > last_file_read_time:
+                    last_file_read_time = json.loads(data)['result']['received_at']
+
+                    timestamp_data = last_file_read_time[0:10]
+
+
+                    with open('last_time.txt', 'w') as f:
+                        # Write text to the file
+                        f.write(last_file_read_time)
+
+                    upload_data = {
+                        "DATE" : timestamp_data,
+                        "TEMP_IN": greenhouse_data['temperature'],
+                        "HUMIDITY": greenhouse_data['humidity'],
+                        "LIGHT": {"BLUE": light[0],  "RED": light[1]}
+                    }
+
+                    # POST request to upload_data API
+                    response_upload = requests.post(url=url2, json=upload_data)
+
+                    if response_upload.status_code == 200:
+                        print("Successfully uploaded data")
+                    else:
+                        print(f"Failed to upload data. Status code: {response_upload.status_code}")
+
     else:
         # Simulated API call, update the greenhouse data with new values
-        '''greenhouse_data['temperature'] = "null"
+        greenhouse_data['temperature'] = "null"
         greenhouse_data['humidity'] = "null"
-        greenhouse_data['natural_light'] = "null"'''
+        greenhouse_data['natural_light'] = "null"
 
-        response = requests.get('192.168.0.104/api/predict')
-        print(response)
-
-        # If the request was successful, return the prediction
-        if response.status_code == 200:
-            return jsonify(response.json())
-        else:
-            return Response("Error when getting prediction", status=response.status_code)
     return jsonify(greenhouse_data)
 
 
@@ -204,6 +259,16 @@ def update_controls():
 
     return ''
 
+def read_last_file():
+    global last_file_read_time
+    with open('last_time.txt', 'r') as f:
+        # Read the entire content of the file
+        buf = f.read()
+        if buf != "":
+            last_file_read_time = buf
+
 
 if __name__ == '__main__':
+    read_last_file()
+
     app.run(debug=True)
