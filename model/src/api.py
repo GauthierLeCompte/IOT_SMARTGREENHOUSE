@@ -23,7 +23,6 @@ def predict():
     """
     # load request data
     data = json.loads(request.get_json())
-    # data = {'DATE': datetime.now().date()}
     data = datetime(data['year'], data['month'], data['day'])
 
     # predict
@@ -54,11 +53,13 @@ def predict_three_day():
     """
     # load request data
     data = json.loads(request.get_json())
-    # data = {'DATE':datetime.now().date()}
     data = datetime(data['year'], data['month'], data['day'])
 
     # predict
     prediction = predict_input_three_day(data)
+    if prediction is None:
+        return jsonify({'success': False, 'status': 'data not found'}), 404
+
     response = {
         'prediction': prediction,
         'success': True,

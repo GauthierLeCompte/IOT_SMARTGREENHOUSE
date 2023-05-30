@@ -67,7 +67,6 @@ def request_prediction():
     """
     # load date from request data
     data = json.loads(request.get_json())
-    #data = {'DATE': datetime.now().date()}
 
     if not (data['year']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404
@@ -91,8 +90,7 @@ def request_three_day_prediction():
     Receives a date in the request and makes a combined prediction for the last three dates. Then stores prediction.
     """
     # load date from request data
-    data = request.get_json()
-    # data = {'DATE': datetime.now().date()}
+    data = json.loads(request.get_json())
 
     if not (data['year']):
         return jsonify({'success': False, 'status': 'No input data received'}), 404

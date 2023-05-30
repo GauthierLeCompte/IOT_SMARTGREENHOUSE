@@ -93,7 +93,7 @@ def predict_input_three_day(date):
 
     # load required data from date
     data = db.session.query(func.avg(Measurement.temp_indoor).label('temp_indoor'), func.avg(Measurement.humidity).label('humidity'), func.avg(Measurement.lamp_status).label('lamp_status')).filter(Measurement.date.between(day_3, date)).all()
-    if data is None:
+    if len(data) == 0:
         return None
     # translate to dict for accessibility reasons
     data = {'temp_indoor': data[0].temp_indoor, 'humidity': data[0].humidity, 'lamp_status': data[0].lamp_status}
