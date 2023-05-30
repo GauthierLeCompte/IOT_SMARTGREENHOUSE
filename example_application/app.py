@@ -107,7 +107,7 @@ def index():
 @app.route('/api/update_prediction')
 def update_prediction():
     global Prediction
-    base_url = 'https://1881b247ae123a16af96351c18d242cf.balena-devices.com'
+    base_url = 'https://1344836fde96824905923d50cccf2231.balena-devices.com'
     endpoint = "/api/predict"
     url = base_url + endpoint
     yesterday = datetime.now().date() - timedelta(days=2)
@@ -140,7 +140,7 @@ def update_data():
     url = "https://eu1.cloud.thethings.network/api/v3/as/applications/smart-greenhouse-ntg/packages/storage/uplink_message"
     url+=f"?after=2023-05-23T00:00:00Z"
 
-    base_url2 = 'https://1881b247ae123a16af96351c18d242cf.balena-devices.com'
+    base_url2 = 'https://1344836fde96824905923d50cccf2231.balena-devices.com'
     endpoint2 = "/api/upload"
     url2 = base_url2 + endpoint2
 
