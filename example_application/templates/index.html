@@ -26,8 +26,17 @@
 
             function updatePrediction() {
                 $.get('/api/update_prediction', function (data) {
-                    $('#prediction').text(data.prediction);
+                  var prediction = data.prediction;
+                  sessionStorage.setItem('prediction', prediction); // Store the prediction value in localStorage
+                  $('#prediction').text(prediction);
+                });
+            }
 
+            function updatePrediction3() {
+                $.get('/api/update_prediction3', function (data) {
+                  var prediction = data.prediction;
+                  sessionStorage.setItem('prediction3', prediction); // Store the prediction value in localStorage
+                  $('#prediction3').text(prediction);
                 });
             }
 
@@ -53,6 +62,18 @@
                 }
             });
 
+            // Get the stored prediction from localStorage on page load
+            var storedPrediction = sessionStorage.getItem('prediction');
+            if (storedPrediction) {
+              $('#prediction').text(storedPrediction);
+            }
+
+            // Get the stored prediction from localStorage on page load
+            var storedPrediction3 = sessionStorage.getItem('prediction3');
+            if (storedPrediction3) {
+              $('#prediction3').text(storedPrediction3);
+            }
+
             // Periodically update the greenhouse data every 5 seconds
             setInterval(function () {
                 updateGreenhouseData();
@@ -73,8 +94,14 @@
             });
 
             // Get prediction click event
-            $('#get-prediciton').click(function () {
+            $('#get-prediction').click(function () {
                 updatePrediction();
+
+            });
+
+            // Get prediction click event
+            $('#get-prediction3').click(function () {
+                updatePrediction3();
 
             });
 
@@ -116,10 +143,15 @@
     <img id="lights-chart" src="/static/lights_graph.png" alt="Light Chart">
 
     <h3>Monthly cost prediction</h3>
-    <p>Prediction: <span id="prediction">{{ Prediciton }}</span></p>
+    <p>Prediction: <span id="prediction">{{ prediction }}</span></p>
 
-    <button id="get-prediciton">Get Prediction</button>
+    <button id="get-prediction">Get Prediction</button>
 
+
+    <h3>Monthly cost prediction for last 3 days</h3>
+    <p>Prediction: <span id="prediction3">{{ prediction3 }}</span></p>
+
+    <button id="get-prediction3">Get Prediction 3 days</button>
 
 </body>
 </html>

@@ -25,7 +25,8 @@ greenhouse_data = {
     'humidity': '',
     'natural_light': ''
 }
-Prediction = 7
+prediction = 0
+prediction = 3
 control_states = {
     'heater': False,
     'cooler': False,
@@ -104,13 +105,13 @@ def index():
                            mode=mode)
 
 
-@app.route('/api/update_prediction')
-def update_prediction():
-    global Prediction
+@app.route('/api/update_prediction3')
+def update_prediction3():
+    global prediction3
     base_url = 'https://1344836fde96824905923d50cccf2231.balena-devices.com'
-    endpoint = "/api/predict"
+    endpoint = "/api/predict3"
     url = base_url + endpoint
-    yesterday = datetime.now().date() - timedelta(days=2)
+    yesterday = datetime.now().date() - timedelta(days=0)
 
     year = int(yesterday.year)
     month = int(yesterday.month)
@@ -127,6 +128,34 @@ def update_prediction():
 
     # If the request was successful, return the prediction
     if response.status_code == 200:
+        prediction3 = response.json()["prediction"]
+        return jsonify(response.json())
+    return jsonify(response.json())
+
+@app.route('/api/update_prediction')
+def update_prediction():
+    global Prediction
+    base_url = 'https://1344836fde96824905923d50cccf2231.balena-devices.com'
+    endpoint = "/api/predict"
+    url = base_url + endpoint
+    yesterday = datetime.now().date() - timedelta(days=1)
+
+    year = int(yesterday.year)
+    month = int(yesterday.month)
+    day = int(yesterday.day)
+
+    # return data
+    data = {'year': year, 'month': month, 'day': day}
+
+    data = json.dumps(data, indent=4, sort_keys=True)
+
+    headers = {'Content-Type': 'application/json'}
+
+    response = requests.post(url, headers=headers, json=data)
+
+    # If the request was successful, return the prediction
+    if response.status_code == 200:
+        Prediction = response.json()["prediction"]
         return jsonify(response.json())
     return jsonify(response.json())
 
@@ -233,19 +262,22 @@ def update_controls():
     elif greenhouse_data['humidity'] == 'null' or greenhouse_data['temperature'] == 'null' or greenhouse_data[
         'humidity'] == 'null':
         return ''
+    elif greenhouse_data['humidity'] == '' or greenhouse_data['temperature'] == '' or greenhouse_data[
+        'humidity'] == '':
+        return ''
     elif mode == 'automatic':
         temperature = float(greenhouse_data['temperature'])
         humidity = float(greenhouse_data['humidity'])
         natural_light = float(greenhouse_data['natural_light'][0])
         if control_states['heater']:
-            control_states['heater'] = (temperature < 25)
+            control_states['heater'] = (temperature < 24)
         else:
-            control_states['heater'] = (temperature < 20)
+            control_states['heater'] = (temperature < 22)
 
         if control_states['cooler']:
-            control_states['cooler'] = (temperature > 30)
+            control_states['cooler'] = (temperature > 25)
         else:
-            control_states['cooler'] = (temperature > 35)
+            control_states['cooler'] = (temperature > 27)
 
         if control_states['humidifier']:
             control_states['humidifier'] = (humidity < 60)
@@ -255,7 +287,7 @@ def update_controls():
         if control_states['lights']:
             control_states['lights'] = (natural_light < 100)
         else:
-            control_states['lights'] = (natural_light < 50)
+            control_states['lights'] = (natural_light < 80)
 
     return ''
 

@@ -27,6 +27,7 @@ This is a Flask-based web application for monitoring and controlling a smart gre
 
 5. To control the greenhouse environment, switch between manual and automatic modes using the toggle button. In manual mode, you can control the heater, cooler, humidifier, and lights individually. In automatic mode, the control states are adjusted based on the current sensor data.
 
+6. You can access the Coral DevBoard through the prediction buttons. This wil give a cost estimation of the greenhouse.
 ## File Structure
 
 The project has the following file structure:
@@ -37,6 +38,7 @@ The project has the following file structure:
 - `static/`: A directory where the generated graphs are stored.
 - `templates/`: A directory containing HTML template for rendering the website page.
 - `templates/index.html`: The main HTML template for the homepage.
+- `last_time.txt`: The last timestamp any data was uploaded to the dev board.
 
 ## Graphs
 
