@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 import requests
 import json
 import decodeSensorData
@@ -116,7 +116,6 @@ def update_data():
 
     response = requests.get(url, headers=headers)
 
-
     if response.status_code == 200:
         if response.content == b'':
             greenhouse_data['temperature'] = "null"
@@ -148,9 +147,18 @@ def update_data():
 
     else:
         # Simulated API call, update the greenhouse data with new values
-        greenhouse_data['temperature'] = "null"
+        '''greenhouse_data['temperature'] = "null"
         greenhouse_data['humidity'] = "null"
-        greenhouse_data['natural_light'] = "null"
+        greenhouse_data['natural_light'] = "null"'''
+
+        response = requests.get('192.168.0.104/api/predict')
+        print(response)
+
+        # If the request was successful, return the prediction
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return Response("Error when getting prediction", status=response.status_code)
     return jsonify(greenhouse_data)
 
 

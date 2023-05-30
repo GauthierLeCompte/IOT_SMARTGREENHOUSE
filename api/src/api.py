@@ -8,12 +8,11 @@ from flask import Blueprint, jsonify, request
 
 api_bl = Blueprint('api', __name__)
 
-PREDICTION_VALUES = ['TEMP_IN', 'HUMIDITY', 'LAMP_STATUS']
+#PREDICTION_VALUES = ['TEMP_IN', 'HUMIDITY', 'LAMP_STATUS']
 
 @api_bl.route('/api/ping', methods=['GET'])
 def get():
-    response = {"please": "werk AUUUBBB 222"}
-    print("yellow")
+    response = {"ping": "pong"}
     return jsonify(response), 200
 
 

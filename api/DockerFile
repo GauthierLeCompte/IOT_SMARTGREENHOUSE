@@ -22,3 +22,4 @@
     # new
     # run server
     CMD ["/usr/src/app/run.sh"]
+

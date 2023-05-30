@@ -50,8 +50,8 @@ def update_status():
 # Get prediction from model
 @app.route('/api/get-prediction', methods=['GET'])
 def get_prediction():
-    #base_url = 'https://16bf8e6febf3d5908a8216acba666f71.balena-devices.com'
-    base_url = 'http://127.0.0.1:5001'
+    base_url = 'https://b271b7fc6568b59c865b4ee4e2bae414.balena-devices.com'
+    # base_url = 'http://127.0.0.1:5001'
     endpoint = "/api/predict"
     url = base_url + endpoint
     yesterday = datetime.now().date() - timedelta(days=0)
@@ -140,8 +140,8 @@ def get_application_data(data_type="uplink_message"):
     response = requests.get(url, headers=headers)
     last_timestamp = "2023-05-24T00:00:00Z"
 
-    # base_url2 = 'https://16bf8e6febf3d5908a8216acba666f71.balena-devices.com'
-    base_url2 = 'http://127.0.0.1:5001'
+    base_url2 = 'https://b271b7fc6568b59c865b4ee4e2bae414.balena-devices.com'
+    # base_url2 = 'http://127.0.0.1:5001'
     endpoint2 = "/api/upload"
     url2 = base_url2 + endpoint2
 
