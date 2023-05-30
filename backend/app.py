@@ -47,7 +47,7 @@ def update_status():
 # Get prediction from model
 @app.route('/api/get-prediction', methods=['GET'])
 def get_prediction():
-    base_url = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
+    base_url = 'https://1881b247ae123a16af96351c18d242cf.balena-devices.com'
     # base_url = 'http://127.0.0.1:5001'
     endpoint = "/api/predict"
     url = base_url + endpoint
@@ -104,7 +104,7 @@ def get_application_data(data_type="uplink_message"):
     response = requests.get(url, headers=headers)
     global last_timestamp
 
-    base_url2 = 'https://7d4a0483fc783f61201954cf422afdf9.balena-devices.com'
+    base_url2 = 'https://1881b247ae123a16af96351c18d242cf.balena-devices.com'
     endpoint2 = "/api/upload"
     url2 = base_url2 + endpoint2
 
