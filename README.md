@@ -3,4 +3,10 @@
 
 # Command: sudo docker-compose -f docker-compose.yml up  --build
 
+Now that everything is up-and-running create the database models using this command:
+docker-compose -f docker-compose.yml run api python manage.py recreate-db
+
+Now lastly, train the machine learning model with this command:
+docker-compose -f docker-compose.yml run model python manage.py train
+
 # To run the application you can look at the readme in the application map.
