@@ -10,3 +10,5 @@ Now lastly, train the machine learning model with this command:
 docker-compose -f docker-compose.yml run model python manage.py train
 
 # To run the application you can look at the readme in the application map.
+
+# In the module_code map you will find the code that runs on the sensor and pygate
